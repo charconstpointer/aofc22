@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	b, err := os.ReadFile("sample.txt")
+	b, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
@@ -18,6 +18,7 @@ func main() {
 	overlapped := 0
 	for sc.Scan() {
 		row := sc.Text()
+
 		secs := strings.Split(row, ",")
 		l, r := secs[0], secs[1]
 		var (
@@ -30,7 +31,7 @@ func main() {
 		ly, _ = strconv.Atoi(string(ls[1]))
 		rx, _ = strconv.Atoi(string(rs[0]))
 		ry, _ = strconv.Atoi(string(rs[1]))
-		if rangeFullyOverlaps(lx, rx, ly, ry) {
+		if rangePartiallyOverlaps(lx, ly, rx, ry) {
 			overlapped++
 		}
 	}
@@ -40,6 +41,11 @@ func main() {
 func rangeFullyOverlaps(x1, y1, x2, y2 int) bool {
 	ok := x1 <= y1 && x2 >= y2 || x1 >= y1 && x2 <= y2
 	return ok
+}
+
+func rangePartiallyOverlaps(rx, ry, lx, ly int) bool {
+	overlap := rx == lx || rx == ly || ry == lx || ry == ly || rx < lx && ry > lx || rx > lx && ry < ly || rx < ly && ry > ly
+	return overlap
 }
 
 func min(x, y int) int {
