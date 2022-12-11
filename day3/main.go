@@ -14,13 +14,19 @@ func main() {
 		log.Fatalf("Failed to read file: %v", err)
 	}
 	sc := bufio.NewScanner(bytes.NewReader(b))
-	var rucksacks []*Rucksack
-	for sc.Scan() {
-		rucksacks = append(rucksacks, NewRucksack(sc.Text()))
-	}
-	var prio int
-	for _, r := range rucksacks {
-		prio += r.Prio()
+	ok := true
+	prio := 0
+	for ok {
+		var rows []string
+		for i := 0; i < 3; i++ {
+			ok = sc.Scan()
+			rows = append(rows, sc.Text())
+		}
+		common := intersectMulti([]byte(rows[0]), []byte(rows[1]), []byte(rows[2]))
+		log.Printf("Common: %s", common)
+		for _, c := range common {
+			prio += asciiToPrio(c)
+		}
 	}
 	log.Printf("Prio: %d", prio)
 }
@@ -40,7 +46,12 @@ func NewRucksack(items string) *Rucksack {
 }
 
 func (r *Rucksack) Prio() int {
-	common := intersect([]byte(*r.c[0]), []byte(*r.c[1]))
+	var common []byte
+	if len(r.c) == 2 {
+		common = intersect([]byte(*r.c[0]), []byte(*r.c[1]))
+	} else if len(r.c) == 3 {
+		common = intersectMulti([]byte(*r.c[0]), []byte(*r.c[1]), []byte(*r.c[2]))
+	}
 	log.Printf("Common: %s", common)
 	var prio int
 	for _, c := range common {
@@ -71,4 +82,8 @@ func intersect(a, b []byte) []byte {
 		}
 	}
 	return c
+}
+
+func intersectMulti(a, b, c []byte) []byte {
+	return intersect(intersect(a, b), c)
 }
