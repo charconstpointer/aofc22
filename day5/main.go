@@ -29,10 +29,11 @@ func (c *Controller) Exec(r io.Reader) {
 			log.Fatalf("No stack for tower %v", to)
 		}
 		log.Println("Executing", row)
-		for i := 0; i < count; i++ {
-			pop := fromStack.Pop()
-			(*toStack).Push(pop)
-		}
+		// for i := 0; i < count; i++ {
+		// 	pop := fromStack.Pop()
+		// 	(*toStack).Push(pop)
+		// }
+		toStack.Put(fromStack.Take(count))
 	}
 }
 
@@ -46,6 +47,24 @@ func (s *Stack[T]) Prepend(v T) {
 	*s = append(Stack[T]{v}, *s...)
 }
 
+func (s *Stack[T]) Take(n int) Stack[T] {
+	var min = func(a, b int) int {
+		if a < b {
+			return a
+		}
+		return b
+	}
+	n = min(len(*s), n)
+	take := (*s)[:n]
+	*s = (*s)[n:]
+	log.Println("Take", n, "from", *s, "got", take)
+	return take
+}
+
+func (s *Stack[T]) Put(v Stack[T]) {
+	*s = append(*s, v...)
+}
+
 func (s *Stack[T]) Pop() T {
 	if s == nil || len(*s) == 0 {
 		return *new(T)
@@ -56,7 +75,7 @@ func (s *Stack[T]) Pop() T {
 }
 
 func main() {
-	b, err := os.ReadFile("input.txt")
+	b, err := os.ReadFile("sample.txt")
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
@@ -83,9 +102,7 @@ func main() {
 			break
 		}
 	}
-	for k, v := range c {
-		log.Println("Stack", k, ":", v)
-	}
+
 	for sc.Scan() {
 		c.Exec(strings.NewReader(sc.Text()))
 	}
