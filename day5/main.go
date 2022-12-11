@@ -16,6 +16,7 @@ func (c *Controller) Exec(r io.Reader) {
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
 		row := sc.Text()
+		log.Println("Exec", row)
 		tokens := strings.Split(row, " ")
 		count, _ := strconv.Atoi(string(tokens[1]))
 		from, _ := strconv.Atoi(string(tokens[3]))
@@ -28,11 +29,7 @@ func (c *Controller) Exec(r io.Reader) {
 		if !ok {
 			log.Fatalf("No stack for tower %v", to)
 		}
-		log.Println("Executing", row)
-		// for i := 0; i < count; i++ {
-		// 	pop := fromStack.Pop()
-		// 	(*toStack).Push(pop)
-		// }
+		log.Printf("Move %v from %v to %v", count, from, to)
 		toStack.Put(fromStack.Take(count))
 	}
 }
@@ -55,27 +52,27 @@ func (s *Stack[T]) Take(n int) Stack[T] {
 		return b
 	}
 	n = min(len(*s), n)
-	take := (*s)[:n]
-	*s = (*s)[n:]
+	take := make(Stack[T], n)
+	copy(take, (*s)[:n])
 	log.Println("Take", n, "from", *s, "got", take)
+	*s = (*s)[n:]
 	return take
 }
 
 func (s *Stack[T]) Put(v Stack[T]) {
-	*s = append(*s, v...)
+	test := append(v, *s...)
+	log.Println("Put", v, "into", *s, "got", test)
+	*s = append(v, *s...)
 }
 
 func (s *Stack[T]) Pop() T {
-	if s == nil || len(*s) == 0 {
-		return *new(T)
-	}
 	v := (*s)[0]
 	*s = (*s)[1:]
 	return v
 }
 
 func main() {
-	b, err := os.ReadFile("sample.txt")
+	b, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
 	}
