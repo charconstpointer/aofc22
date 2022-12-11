@@ -31,11 +31,8 @@ func (c *Controller) Exec(r io.Reader) {
 		log.Println("Executing", row)
 		for i := 0; i < count; i++ {
 			pop := fromStack.Pop()
-			log.Println("Popping", pop, "from", (*c)[from])
 			(*toStack).Push(pop)
-			log.Println("Pushing", pop, "to", (*c)[to])
 		}
-		log.Println("Stacks after execution:", (*c)[from], (*c)[to])
 	}
 }
 
@@ -50,6 +47,9 @@ func (s *Stack[T]) Prepend(v T) {
 }
 
 func (s *Stack[T]) Pop() T {
+	if s == nil || len(*s) == 0 {
+		return *new(T)
+	}
 	v := (*s)[0]
 	*s = (*s)[1:]
 	return v
@@ -70,7 +70,7 @@ func main() {
 			}
 			if row[i] == '[' {
 				val := row[i : i+3]
-				stack := (i % ((len(row) / 4) + 1))
+				stack := (i / 4) + 1
 				s, ok := c[stack]
 				if !ok {
 					s = &Stack[string]{}
@@ -82,6 +82,9 @@ func main() {
 		if strings.TrimSpace(row) == "" {
 			break
 		}
+	}
+	for k, v := range c {
+		log.Println("Stack", k, ":", v)
 	}
 	for sc.Scan() {
 		c.Exec(strings.NewReader(sc.Text()))
